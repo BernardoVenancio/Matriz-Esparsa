@@ -1,15 +1,32 @@
+/**
+ * @file matrizEsparsa.c
+ * @brief Arquivo com a implementação do TAD Matriz Esparsa utilizando Listas Encadeadas
+ * @author Bernardo Venancio
+ * @date 2023-12-25
+*/
+
+/* Inclusões */
 #include <stdlib.h>
 #include <stdio.h>
 #include "matrizEsparsa.h"
 
+/* Constantes */
 #define VALOR_COMUM 0
 
+/* Tipos */
+/// Tipo "Item de Matriz", estrutura com os membros de um item de uma matriz
 typedef struct itemMatrizLC_s{
     struct itemMatrizLC_s * direita, * abaixo;
     int linha, coluna;
     double info;
 } itemMatrizLC_t;
 
+/* Funções auxiliares */
+
+/**
+ * @brief Função que inicializa os itens da matriz com valores adequados
+ * @param item Apontador para o item que representa um dos heads da matriz
+*/
 static void matrizEsparsaLC_inicializaHeads(itemMatrizLC_t * item){
     item->direita = NULL;
     item->abaixo = NULL;
@@ -18,6 +35,12 @@ static void matrizEsparsaLC_inicializaHeads(itemMatrizLC_t * item){
     item->linha = -1;
 }
 
+/**
+ * @brief Função que verifica se as dimensões de duas matrizes são compatíveis para soma
+ * @param A Apontador para a matriz à esquerda na soma
+ * @param B Apontador para a matriz à direita na soma
+ * @return TRUE caso seja possível somar as duas matrizes, FALSE caso contrário
+*/
 static bool_t matrizEsparsaLC_compatibilidadeSoma(matrizEsparsaLC_t * A, matrizEsparsaLC_t * B){
     if(A->colunas != B->colunas || A->linhas != B->linhas){
         return FALSE;  
@@ -25,6 +48,12 @@ static bool_t matrizEsparsaLC_compatibilidadeSoma(matrizEsparsaLC_t * A, matrizE
     return TRUE;
 }
 
+/**
+ * @brief Função que verifica se as dimensões de duas matrizes são compatíveis para multiplicação
+ * @param A Apontador para a matriz à esquerda na multiplicação
+ * @param B Apontador para a matriz à direita na multiplicação
+ * @return TRUE caso seja possível multiplicar as duas matrizes, FALSE caso contrário
+*/
 static bool_t matrizEsparsaLC_compatibilidadeMultiplicacao(matrizEsparsaLC_t * A, matrizEsparsaLC_t * B){
     //Para poder multiplicar, uma matrix MxN precisa de uma matriz NxP {colunas da primeira = linhas da segunda} 
     if(A->colunas == B->linhas){
@@ -33,6 +62,14 @@ static bool_t matrizEsparsaLC_compatibilidadeMultiplicacao(matrizEsparsaLC_t * A
     return FALSE;
 }
 
+/* Funções exportadas */
+
+/**
+ * @brief Função que cria e inicializa uma matriz esparsa com cabeçalhos sendo listas encadeadas circulares
+ * @param linhas Número de linhas que a matriz terá
+ * @param colunas Número de colunas que a matriz terá
+ * @return Apontador para o local onde a matriz foi criada e armazenada
+*/
 matrizEsparsaLC_t * matrizEsparsaLC_cria(uint32_t linhas, uint32_t colunas){
     matrizEsparsaLC_t * matriz = (matrizEsparsaLC_t *)malloc(sizeof(matrizEsparsaLC_t));
 
@@ -70,6 +107,10 @@ matrizEsparsaLC_t * matrizEsparsaLC_cria(uint32_t linhas, uint32_t colunas){
     return matriz;
 }
 
+/**
+ * @brief Função responsável por preencher uma matriz de acordo com entradas do usuário
+ * @param matriz Apontador para a lista a ser modificada
+*/
 void leMatriz(matrizEsparsaLC_t * matriz){
     uint32_t opcao;
     do{
@@ -83,8 +124,10 @@ void leMatriz(matrizEsparsaLC_t * matriz){
                 uint32_t linha, coluna;
                 double valor;
                 scanf("%u %u %lf", &linha, &coluna, &valor);
-                bool_t adicionou = matrizEsparsaLC_adicionarElemento(matriz, linha, coluna, valor);
-                printf((adicionou == TRUE) ? "Sim\n" : "Não\n");
+                erro_t adicionou = matrizEsparsaLC_adicionarElemento(matriz, linha, coluna, valor);
+                if(adicionou != SUCESSO){
+                    printf("Não foi possível adicionar\n");
+                }
                 break;
             case 0 :
                 printf("Saindo\n");
@@ -96,9 +139,21 @@ void leMatriz(matrizEsparsaLC_t * matriz){
     } while (opcao != 0);
 }
 
-bool_t matrizEsparsaLC_adicionarElemento(matrizEsparsaLC_t * matriz, uint32_t linha, uint32_t coluna, dadosItem info){
+/**
+ * @brief Função que adiciona um elemento na posição especificada da matriz
+ * @param matriz Apontador para a matriz a ser utilizada
+ * @param linha Linha que o elemento deve ser adicionado. O valor deve estar entre
+ *              [0...matriz->linhas]
+ * @param coluna Coluna em que o elemento deve ser adicionado. O valor deve estar
+ *               entre [0...matriz->colunas]
+ * @param info Informação a ser inserida na matriz
+ * @return SUCESSO caso o item seja inserido corretamente na lista, ou caso contrário,
+ *         o código do erro
+ * 
+*/
+erro_t matrizEsparsaLC_adicionarElemento(matrizEsparsaLC_t * matriz, uint32_t linha, uint32_t coluna, dadosItem info){
     if(linha > matriz->linhas || coluna > matriz->colunas){
-        return FALSE;
+        return ERRO_LISTA_POSICAO_INVALIDA;
     }
 
     itemMatrizLC_t * prevLinha, *prevColuna;
@@ -143,12 +198,12 @@ bool_t matrizEsparsaLC_adicionarElemento(matrizEsparsaLC_t * matriz, uint32_t li
         }else{
             atual->info = info;
         }
-        return TRUE;
+        return SUCESSO;
     }
 
     //Caso o elemento ainda não exista e for o valor que se repete na matriz, basta retornar e não fazer nada
     if(info == VALOR_COMUM){
-        return TRUE;
+        return SUCESSO;
     }
 
     //Se chegou até aqui, essa posição da matriz ainda não existia, então crio e faço a ligacao  
@@ -164,9 +219,14 @@ bool_t matrizEsparsaLC_adicionarElemento(matrizEsparsaLC_t * matriz, uint32_t li
     prevColuna->direita = novoItem;
     
     //Se chegou até aqui, o elemento foi adicionado com sucesso
-    return TRUE;
+    return SUCESSO;
 }
 
+/**
+ * @brief Função que destroi a matriz liberando o espaço utilizado por seus itens
+ *        e por ela mesma
+ * @param matriz Apontador para a matriz a ser destruiída
+*/
 void matrizEsparsaLC_destroi(matrizEsparsaLC_t * matriz){
     itemMatrizLC_t * itemLinha = (itemMatrizLC_t *)matriz->head;
     itemMatrizLC_t * inicioLinha, * prev;
@@ -188,6 +248,10 @@ void matrizEsparsaLC_destroi(matrizEsparsaLC_t * matriz){
     free(matriz);
 }
 
+/**
+ * @brief Função que imprime todos os itens da matriz
+ * @param matriz Apontador para a matriz a ser utilizada
+*/
 void matrizEsparsaLC_imprime(matrizEsparsaLC_t * matriz){
     uint32_t i, j;
     itemMatrizLC_t * atual = (itemMatrizLC_t *)matriz->head;
@@ -207,7 +271,18 @@ void matrizEsparsaLC_imprime(matrizEsparsaLC_t * matriz){
     }
 }
 
-void matrizEsparsaLC_imprimeLinha(matrizEsparsaLC_t * matriz, uint32_t linha){
+/**
+ * @brief Função que imprime uma determinada linha da matriz
+ * @param matriz Apontador para a matriz a ser utilizada
+ * @param linha Linha da matriz a ser imprimida
+ * @return SUCESSO caso a matriz tenha a linha desejada, ou caso contrário,
+ *         o código do erro
+*/
+erro_t matrizEsparsaLC_imprimeLinha(matrizEsparsaLC_t * matriz, uint32_t linha){
+    if(linha > matriz->linhas){
+        return ERRO_LISTA_POSICAO_INVALIDA;
+    }
+
     itemMatrizLC_t * atual = (itemMatrizLC_t *)matriz->head;
     uint32_t i;
     //Caminho pelas linhas
@@ -226,9 +301,21 @@ void matrizEsparsaLC_imprimeLinha(matrizEsparsaLC_t * matriz, uint32_t linha){
         }
     }
     printf("\n");
+    return SUCESSO;
 }
 
-void matrizEsparsaLC_imprimeColuna(matrizEsparsaLC_t * matriz, uint32_t coluna){
+/**
+ * @brief Função que imprime uma determinada coluna da matriz
+ * @param matriz Apontador para a matriz a ser utilizada
+ * @param coluna Coluna da matriz a ser imprimida
+ * @return SUCESSO caso a matriz tenha a coluna desejada, ou caso contrário,
+ *         o código do erro
+*/
+erro_t matrizEsparsaLC_imprimeColuna(matrizEsparsaLC_t * matriz, uint32_t coluna){
+    if(coluna > matriz->colunas){
+        return ERRO_LISTA_POSICAO_INVALIDA;
+    }
+
     itemMatrizLC_t * atual = (itemMatrizLC_t *)matriz->head;
     uint32_t i;
     //Caminho pelas colunas
@@ -246,14 +333,24 @@ void matrizEsparsaLC_imprimeColuna(matrizEsparsaLC_t * matriz, uint32_t coluna){
             printf("%d\n", VALOR_COMUM);
         }
     }
+    return SUCESSO;
 }
 
-bool_t matrizEsparsaLC_somaMatriz(matrizEsparsaLC_t * A, matrizEsparsaLC_t * B, matrizEsparsaLC_t ** C){
+/**
+ * @brief Função que soma duas matrizes
+ * @param A Apontador para a matriz utilizada à esquerda na soma
+ * @param B Apontador para a matriz utilizada à direita na soma
+ * @param C Endereço que receberá o resultado da soma das matrizes A e B
+ * @return SUCESSO caso a soma tenha sido realizada, ou caso contrário,
+ *         o código do erro
+*/
+erro_t matrizEsparsaLC_somaMatriz(matrizEsparsaLC_t * A, matrizEsparsaLC_t * B, matrizEsparsaLC_t ** C){
     //Se as entradas da matriz não forem compatíveis, retorno falso 
     if(matrizEsparsaLC_compatibilidadeSoma(A, B) == FALSE){
         *C = NULL;
-        return FALSE;
+        return ERRO_MATRIZ_SOMA_INCOMPATIVEL;
     }
+    erro_t erro;
 
     //Caso a matriz seja compatível, aloco memória para a matriz C
     //Tanto A quanto B tem o mesmo número de linhas, então nao importa qual usar
@@ -273,18 +370,30 @@ bool_t matrizEsparsaLC_somaMatriz(matrizEsparsaLC_t * A, matrizEsparsaLC_t * B, 
         for(j = 1; j <= (*C)->colunas; j++){
             //Nesse caso, os dois elementos existem e são somados antes de adicionar
             if(elementoA->coluna == j && elementoB->coluna == j){
-                matrizEsparsaLC_adicionarElemento(*C, i, j, (elementoA->info + elementoB->info));
+                erro = matrizEsparsaLC_adicionarElemento(*C, i, j, (elementoA->info + elementoB->info));
+                if(erro != SUCESSO){
+                    matrizEsparsaLC_destroi(*C);
+                    return erro;
+                }
                 elementoA = elementoA->direita;
                 elementoB = elementoB->direita;
             }
             //Caso não tenha em ambos, confiro se existe um elemento em cada um deles
             else if(elementoA->coluna == j){
-                matrizEsparsaLC_adicionarElemento(*C, i, j, elementoA->info);
+                erro = matrizEsparsaLC_adicionarElemento(*C, i, j, elementoA->info);
+                if(erro != SUCESSO){
+                    matrizEsparsaLC_destroi(*C);
+                    return erro;
+                }                
                 elementoA = elementoA->direita;
             }
             //Não posso usar else pois há a possibilidade de não ter em nenhum, nesse caso não faço nada
             else if(elementoB->coluna == j){
-                matrizEsparsaLC_adicionarElemento(*C, i, j, elementoB->info);
+                erro = matrizEsparsaLC_adicionarElemento(*C, i, j, elementoB->info);
+                if(erro != SUCESSO){
+                    matrizEsparsaLC_destroi(*C);
+                    return erro;
+                }                
                 elementoB = elementoB->direita;
             }
         }
@@ -294,13 +403,22 @@ bool_t matrizEsparsaLC_somaMatriz(matrizEsparsaLC_t * A, matrizEsparsaLC_t * B, 
     }    
 
     //Se chegou até aqui, a matriz de soma foi criada com sucesso
-    return TRUE;
+    return SUCESSO;
 }
 
-bool_t matrizEsparsaLC_multiplicaMatriz(matrizEsparsaLC_t * A, matrizEsparsaLC_t * B, matrizEsparsaLC_t ** C){
+/**
+ * @brief Função que multiplica duas matrizes
+ * @param A Apontador para a matriz utilizada à esquerda na multiplicação
+ * @param B Apontador para a matriz utilizada à direita na multiplicação
+ * @param C Endereço que receberá o resultado da multiplicação entre as matrizes
+ *          A e B
+ * @return SUCESSO caso a multiplicação tenha sido realizada, ou caso contrário,
+ *         o código do erro
+*/
+erro_t matrizEsparsaLC_multiplicaMatriz(matrizEsparsaLC_t * A, matrizEsparsaLC_t * B, matrizEsparsaLC_t ** C){
     //Se as entradas das matrizes não forem compatíveis, retorno falso
     if(matrizEsparsaLC_compatibilidadeMultiplicacao(A, B) == FALSE){
-        return FALSE;
+        return ERRO_MATRIZ_MULTIPLICACAO_INCOMPATIVEL;
     }
 
     //Caso a matriz seja compatível, aloco memória para a matriz C
@@ -353,5 +471,5 @@ bool_t matrizEsparsaLC_multiplicaMatriz(matrizEsparsaLC_t * A, matrizEsparsaLC_t
         inicioColuna = inicioColuna->direita;
     }    
 
-    return TRUE;
+    return SUCESSO;
 }
