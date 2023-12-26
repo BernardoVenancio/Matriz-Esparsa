@@ -10,6 +10,7 @@
 #define MATRIZ_ESPARSA_H
 
 /* Inclusões */
+#include <stdio.h>
 #include "tipos.h"
 #include "lista.h"
 #include "erros.h"
@@ -34,7 +35,8 @@ typedef struct matrizEsparsaLC_s{
 
 /* Funções Exportadas */
 matrizEsparsaLC_t * matrizEsparsaLC_cria(uint32_t linhas, uint32_t colunas);
-void leMatriz(matrizEsparsaLC_t * matriz);
+void matrizEsparsaLC_leMatriz(matrizEsparsaLC_t * matriz);
+void matrizEsparsaLC_leMatrizTxt(matrizEsparsaLC_t ** matriz, FILE * arquivo);
 erro_t matrizEsparsaLC_adicionarElemento(matrizEsparsaLC_t * matriz, uint32_t linha, uint32_t coluna, dadosItem info);
 void matrizEsparsaLC_destroi(matrizEsparsaLC_t * matriz);
 void matrizEsparsaLC_imprime(matrizEsparsaLC_t * matriz);

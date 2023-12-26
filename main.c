@@ -2,45 +2,56 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define SUCESSO 0
 
 int main(int argc, char ** argv){
-    uint32_t nLinhas = 3, nColunas = 3;
+    matrizEsparsaLC_t *A, *B, *C;
+    FILE * arquivo;
 
-    matrizEsparsaLC_t * A = matrizEsparsaLC_cria(nLinhas, nColunas);
-    matrizEsparsaLC_t * B = matrizEsparsaLC_cria(nLinhas, nColunas);
-    matrizEsparsaLC_t * C;
-
-    matrizEsparsaLC_adicionarElemento(A, 1, 2, 13);
-    matrizEsparsaLC_adicionarElemento(A, 2, 1, 7);
-    matrizEsparsaLC_adicionarElemento(A, 2, 2, 20);
-    matrizEsparsaLC_adicionarElemento(A, 2, 2, 0);
-
-    matrizEsparsaLC_adicionarElemento(B, 1, 2, 2);
-    matrizEsparsaLC_adicionarElemento(B, 3, 1, 69);
-    matrizEsparsaLC_adicionarElemento(B, 2, 2, 3);
-
-    printf("Impressão matriz A:\n");
+    arquivo = fopen("./matrizes-teste/matriz1.txt", "r");
+    matrizEsparsaLC_leMatrizTxt(&A, arquivo);
+    // Imprime a matriz
+    printf("Matriz A:\n");
     matrizEsparsaLC_imprime(A);
+    fclose(arquivo);
 
-    printf("Impressão matriz B:\n");
+   arquivo = fopen("./matrizes-teste/matriz2.txt", "r");
+    matrizEsparsaLC_leMatrizTxt(&B, arquivo);
+    // Imprime a matriz
+    printf("Matriz B:\n");
     matrizEsparsaLC_imprime(B);
-
-    printf("Somando A e B e armazenando em C:\n");
+    fclose(arquivo);
+    
+    printf("Somando a matriz A e B e guardando em C:\n");
     matrizEsparsaLC_somaMatriz(A, B, &C);
-    printf("Impressão do resultado(C):\n");
-    matrizEsparsaLC_imprime(C);
-
-    matrizEsparsaLC_destroi(C);
-
-    printf("Multiplicando A e B e armazenando em C:\n");
-    matrizEsparsaLC_multiplicaMatriz(A, B, &C);
-    printf("Impressão do resultado(C):\n");
+    printf("Resultado da soma:\n");
     matrizEsparsaLC_imprime(C);
 
     matrizEsparsaLC_destroi(A);
     matrizEsparsaLC_destroi(B);
     matrizEsparsaLC_destroi(C);
-    
+
+   arquivo = fopen("./matrizes-teste/matriz3.txt", "r");
+    matrizEsparsaLC_leMatrizTxt(&A, arquivo);
+    // Imprime a matriz
+    printf("Matriz A:\n");
+    matrizEsparsaLC_imprime(A);
+    fclose(arquivo);
+
+   arquivo = fopen("./matrizes-teste/matriz4.txt", "r");
+    matrizEsparsaLC_leMatrizTxt(&B, arquivo);
+    // Imprime a matriz
+    printf("Matriz B:\n");
+    matrizEsparsaLC_imprime(B);
+    fclose(arquivo);
+
+    printf("Multiplicando a matriz A e B e guardando em C:\n");
+    matrizEsparsaLC_multiplicaMatriz(A, B, &C);
+    printf("Resultado da multiplicação:\n");
+    matrizEsparsaLC_imprime(C);
+
+    matrizEsparsaLC_destroi(A);
+    matrizEsparsaLC_destroi(B);
+    matrizEsparsaLC_destroi(C);
+
     return SUCESSO;
 }

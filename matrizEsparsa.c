@@ -111,7 +111,7 @@ matrizEsparsaLC_t * matrizEsparsaLC_cria(uint32_t linhas, uint32_t colunas){
  * @brief Função responsável por preencher uma matriz de acordo com entradas do usuário
  * @param matriz Apontador para a lista a ser modificada
 */
-void leMatriz(matrizEsparsaLC_t * matriz){
+void matrizEsparsaLC_leMatriz(matrizEsparsaLC_t * matriz){
     uint32_t opcao;
     do{
         printf("1 - Adicionar mais Elementos\n");
@@ -137,6 +137,28 @@ void leMatriz(matrizEsparsaLC_t * matriz){
         }
 
     } while (opcao != 0);
+}
+
+/**
+ * @brief Função que cria e preenche uma matriz de acordo com o especificado em um arquivo .txt
+ * @param matriz Endereço que receberá a matriz criada
+ * @param file Arquivo no qual será feita a leitura
+ * 
+*/
+
+void matrizEsparsaLC_leMatrizTxt(matrizEsparsaLC_t ** matriz, FILE * arquivo){
+    uint32_t nLinhas, nColunas;
+    fscanf(arquivo, "%u", &nLinhas);
+    fscanf(arquivo, "%u", &nColunas);
+    
+    //Aloco a memória necesária para a matriz
+    *matriz = matrizEsparsaLC_cria(nLinhas, nColunas);
+
+    uint32_t linha, coluna;
+    dadosItem info;
+    while(fscanf(arquivo, "%u %u %lf", &linha, &coluna, &info) != EOF){
+        matrizEsparsaLC_adicionarElemento(*matriz, linha, coluna, info);
+    }
 }
 
 /**
